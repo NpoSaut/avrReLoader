@@ -5,7 +5,9 @@ MEMORY
 {
   start  (rx)   : ORIGIN = 0,        LENGTH = 0xff
   unsafe (rx)   : ORIGIN = 0x100,    LENGTH = 0x100
-  text   (rx)   : ORIGIN = 0x200,    LENGTH = 128K 
+  fm_inf (rx)	: ORIGIN = 0x200,    LENGTH = 0x100
+  fm_code(rx)   : ORIGIN = 0x300,    LENGTH = 0x2000
+  text   (rx)   : ORIGIN = 0x2300,   LENGTH = 128K 
   data   (rw!x) : ORIGIN = 0x800100, LENGTH = 0xff00
   eeprom (rw!x) : ORIGIN = 0x810000, LENGTH = 64K
 }
@@ -104,6 +106,18 @@ SECTIONS
      *(.unsafe)
      KEEP (*(.unsafe))
    } > unsafe
+   
+   .fm_inf : AT (0x200)
+   {
+     *(.fm_inf)
+     KEEP (*(.fm_inf))
+   } > fm_inf
+   
+   .fm_code : AT (0x300)
+   {
+     *(.fm_code)
+     KEEP (*(.fm_code))
+   } > fm_code
 
    .text :
    {

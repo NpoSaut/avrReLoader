@@ -14,6 +14,18 @@
 #include <util/delay.h>
 
 #include "hard.h"
+#include "firmware.h"
+
+// DEBUG ONLY
+#include "cpp/can-dat.h"
+typedef CanDat < INT_TYPELIST_2(0x1888, 0x1A88),
+				 INT_TYPELIST_2(0x0A08, 0x0B08),
+				 NullType,
+					128,
+					NullType,
+				 100 >									// BaudRate = 100 Кбит, SamplePoint = 75% (по умолчанию)
+	CanDatType;
+CanDatType canDat;
 
 void Init (void) __attribute__ ((naked)) __attribute__ ((section (".init5")));
 void Init (void)
@@ -35,32 +47,26 @@ int main ()
 {
 	asm volatile ("nop"); // !!! 126 version hack !!!
 
-//	sei();
+	sei();
 	ledInit();
 	ledDown(1);
 	ledUp(0);
 
-    for (uint8_t i = 0; i < 50; i++)
-    {
-    	_delay_ms (100);
-    	wdt_reset();
-    }
+	Complex<uint32_t> start, stop;
+	start = pgm_read_dword(&firmwareInfo.startAddr);
+	stop = pgm_read_dword(&firmwareInfo.endAddr);
 
-    ledToggle(0);
-    ledToggle(1);
-
-    resetInit();
-    resetSet(true);
-
-    for (uint8_t i = 0; i < 100; i++)
-    {
-    	_delay_ms(100);
-    	wdt_reset();
-    }
-
-    resetSet(false);
-    ledUp(0);
-    ledUp(1);
+	uint8_t test[8] = {
+			start[3],
+			start[2],
+			start[1],
+			start[0],
+			stop[3],
+			stop[2],
+			stop[1],
+			stop[0]
+	};
+	canDat.send<0x1888> (test);
 
     for (;;)
     {
